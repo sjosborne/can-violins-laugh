@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Thesis experiment</title>
+     <script src="https://unpkg.com/jspsych@8.2.2"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-audio-keyboard-response@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-survey-text@2.1.0"></script>
+    <script src="https://unpkg.com/@jspsych-contrib/plugin-pipe"></script>
+    <link href="https://unpkg.com/jspsych@8.2.2/css/jspsych.css" rel="stylesheet" type="text/css" />
+</head>
+  <body></body>
+  <script>
+    const jsPsych = initJsPsych({override_safe_mode:true});
+    var timeline = [];
+
+    // capture info from Prolific
+
+    var prolific_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
+    var study_id = jsPsych.data.getURLVariable('STUDY_ID');
+    var session_id = jsPsych.data.getURLVariable('SESSION_ID');
+
+  jsPsych.data.addProperties({
+    prolific_id: prolific_id,
+    study_id: study_id,
+    session_id: session_id
+  });
+
+  //generate unique file name
+  
+    const subject_id = jsPsych.randomization.randomID(10);
+    const filename = `${subject_id}.csv`;
+            
+  //welcome
+    var welcome = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: "Welcome to the experiment. Please make sure you are wearing headphones. Press any key to begin."
+    };
+    timeline.push(welcome);
+
+  //instructions
+    var instructions = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+      <p> In this experiment, you will be asked to listen to various sounds. Some will be human vocalizations, and some will be instrumental music. </p>
+      <p> After listening to each sound, please type one word in the text box describing the emotion you believe the sound was expressing. </p>
+      <p> You will only hear each sound once, so listen carefully. </p>
+      <p> Once you have typed out a word describing the emotion you believe was being conveyed, press the "Continue" button to move on to the next sound. </p>
+      <p> Press any key to begin. </p>
+      `,
+      post_trial_gap: 2000
+    };
+    timeline.push(instructions);
+
+const files = [
+    'ut_sad-cry_46-f.wav',
+    'ut_sad-cry_48-f.wav',
+    'ut_sad-cry_56-m.wav',
+    '495_ut_sad-cry_47-f.wav',
+    'Adultfemale_cry01.wav',
+    'ut_sad-cry_06-m.wav',
+    'ut_sad-cry_12-m.wav',
+    'ut_sad-cry_16-m.wav',
+    'ut_sad-cry_21-m-super-rapid-breathing.wav',
+    'ut_sad-cry_23-m.wav',
+    'ut_sad-cry_28-f.wav',
+    'ut_sad-cry_30-f.wav',
+    'ut_sad-cry_33-f.wav',
+    'ut_sad-cry_40-m.wav',
+    '001_ut_anger_00-m-therapy.wav',
+    '002_ut_anger_01-m-therapy.wav',
+    '003_ut_anger_02-m-therapy.wav',
+    '050_ut_anger_49-f-scream-tantrum.wav',
+    '057_ut_anger_56-m-roar.wav',
+    'NEW036_ut_anger_35-f-roar-curse.wav',
+    'ut_anger_13-m-roar-scream.wav',
+    'ut_anger_21-m-roar-growl.wav',
+    'ut_anger_24-f-roar-curse.wav',
+    'ut_anger_36-f-roar-curse.wav',
+    'ut_anger_47-f-scream-tantrum.wav',
+    '230_ut_fear_50-m-scream.wav',
+    '231_ut_fear_51-m-scream',
+    'ut_fear_07.wav',
+    'ut_fear_20.wav',
+    'ut_fear_23-scream-laugh.wav',
+    'ut_fear_29-f-scream.wav',
+    'ut_fear_38-f-scream.wav',
+    'ut_fear_44-m-scream.wav',
+    'ut_fear_51-m-scream.wav',
+    'ut_fear-bungee_08.wav',
+    'ut_fear-bungee_11.wav',
+    'ut_fear-bungee_20.wav',
+    '295_ut_laugh-amused_47-f.wav',
+    'Adultfemale_laugh01.wav',
+    'Adultmale_laugh01.wav',
+    'ut_laugh-amused_02-f.wav',
+    'ut_laugh-amused_06-f.wav',
+    'ut_laugh-amused_09-f.wav',
+    'ut_laugh-amused_12-m.wav',
+    'ut_laugh-amused_20-m.wav',
+    'ut_laugh-amused_21-m.wav',
+    'ut_laugh-amused_31-m.wav',
+    'ut_laugh-amused_35-m.wav',
+    'ut_laugh-amused_41-f.wav',
+    'ut_laugh-amused_53-f.wav',
+]
+
+const instruments = [
+    'PIAN',
+    'CLAR',
+    'VIOL',
+]
+
+// randomize the order of the files
+const shuffled_files = files.sort(() => Math.random() - 0.5);
+
+
+// 50 files = each instrument has 17 files
+// make a list of 50 trials with randomized order of instruments and files
+let trials = [];
+
+// copy each instrument 17 times and randomize the order
+const instrument_list = [];
+instruments.forEach(inst => {
+    for (let i = 0; i < 17; i++) {
+        instrument_list.push(inst);
+    }
+});
+instrument_list.sort(() => Math.random() - 0.5);
+
+// combine instrument and file into trials
+for(let i=0; i<shuffled_files.length; i++){
+    trials.push({
+        instrument: instrument_list[i],
+        file: shuffled_files[i]
+    });
+}
+
+// add the vocal only trials
+for(let i=0; i<shuffled_files.length; i++){
+    trials.push({
+        instrument: 'VOICE',
+        file: shuffled_files[i]
+    });
+}
+
+trials.sort(() => Math.random() - 0.5);
+
+  //audio trials
+    var audio_trial = {
+        type: jsPsychAudioKeyboardResponse,
+        stimulus: () => {
+            return `${jsPsych.evaluateTimelineVariable('instrument')}_${jsPsych.evaluateTimelineVariable('file')}`;
+        },
+        choices: "NO_KEYS",
+        trial_ends_after_audio: true,
+        data: {
+            instrument: jsPsych.timelineVariable('instrument'),
+            file: jsPsych.timelineVariable('file')
+        },
+    };
+
+  //response trial
+    var response_trial = {
+     type: jsPsychSurveyText,
+     questions: [
+        {prompt: 'Please type one word describing the emotion you believe was being expressed by the sound you just heard.'}
+     ],
+     data: {
+        instrument: jsPsych.timelineVariable('instrument'),
+        file: jsPsych.timelineVariable('file')
+     }
+    };
+
+    //trial procedure
+    const audio_trials_procedure = {
+        timeline: [audio_trial, response_trial],
+        timeline_variables: trials
+    };
+    timeline.push(audio_trials_procedure);
+
+    //debrief
+    var debrief = {
+      type: jsPsychHtmlKeyboardResponse,
+      stimulus: `
+      <p> Thank you for your particpation!</p>
+      <p><a href="https://app.prolific.co/submissions/complete?cc=XXXXXXX">Click here to return to Prolific and complete the study</a>.</p>
+      `,
+      post_trial_gap: 2000,
+      choices: "NO_KEYS",
+    };
+    timeline.push(debrief);
+    
+    //save data
+    const save_data = {
+   type: jsPsychPipe,
+   action: "save",
+   experiment_id: "iD7pt69agKjY",
+   filename: filename,
+   data_string: ()=>jsPsych.data.get().csv()
+   };
+   timeline.push(save_data);
+
+    jsPsych.run(timeline)
+  </script>
+</html>
+
+
+
